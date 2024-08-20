@@ -1,0 +1,8 @@
+sentence-transformers
+gradio
+chromadb
+langchain
+langchain_core
+langchain_community
+einops
+more_itertools
