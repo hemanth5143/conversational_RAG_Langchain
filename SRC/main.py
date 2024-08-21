@@ -1,5 +1,11 @@
-from langchain_community.llms import GooglePalm
 from embedding import embedding_model
+import chromadb
+import gradio as gr
+# Initialize ChromaDB client and access the existing collection
+directory = r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\chroma_db"
+chroma_client = chromadb.PersistentClient(path=directory)
+collection = chroma_client.get_collection(name="mindguardian_collection")
+
 from langchain.chains import LLMChain
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -20,7 +26,7 @@ llm_google_palm = GoogleGenerativeAI(model="gemini-pro",google_api_key=token, te
 
 #llm_google_palm = GooglePalm(google_api_key=token, temperature=0.1, max_tokens= 100)
 
-system_prompt = "<s>[INST] You are an expert mental health counseling chatbot named Mindguardian. You provide professional mental health counseling to users. [/INST]"
+system_prompt = "You are an expert mental health counseling chatbot named Mindguardian. You provide professional mental health counseling to users."
 conversational_memory_length = 10
 memory = ConversationBufferWindowMemory(k=conversational_memory_length, memory_key="chat_history", return_messages=True)
 print("System prompt and memory initialized.")
