@@ -1,3 +1,4 @@
+#pytorch torchvision torchaudio cpuonly -c pytorch
 sentence-transformers
 gradio
 chromadb
