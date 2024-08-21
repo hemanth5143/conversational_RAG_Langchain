@@ -22,9 +22,8 @@ load_dotenv()
 token = os.getenv("Google_api_key")
 
 from langchain_google_genai import GoogleGenerativeAI
-llm_google_palm = GoogleGenerativeAI(model="gemini-pro",google_api_key=token, temperature=0.1, max_tokens= 100)
+llm_gemini = GoogleGenerativeAI(model="gemini-pro",google_api_key=token, temperature=0.1, max_tokens= 100)
 
-#llm_google_palm = GooglePalm(google_api_key=token, temperature=0.1, max_tokens= 100)
 
 system_prompt = "You are an expert mental health counseling chatbot named Mindguardian. You provide professional mental health counseling to users."
 conversational_memory_length = 10
@@ -69,7 +68,7 @@ def query_llm(user_question, _):
         print("Prompt constructed.")
 
         conversation = LLMChain(
-            llm=llm_google_palm, 
+            llm=llm_gemini, 
             prompt=prompt,
             verbose=False,
             memory=memory,
