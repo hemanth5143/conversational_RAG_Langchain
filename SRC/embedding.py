@@ -1,18 +1,19 @@
 import json
 from sentence_transformers import SentenceTransformer
-import os
 import chromadb
 from chromadb.utils import embedding_functions
 
+# Load dataset
 with open(r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\data\Alexander_Street_shareGPT_2.0.json", 'r') as file:
     dataset = json.load(file)
 print("Dataset loaded successfully.")
 
+# Initialize ChromaDB client
 directory = r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\chroma_db"
 chroma_client = chromadb.PersistentClient(path=directory)
-
 print("ChromaDB client initialized.")
 
+# Initialize embedding model
 embedding_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True)
 
 class CustomEmbeddingFunction:
@@ -24,19 +25,20 @@ class CustomEmbeddingFunction:
 embedding_func = CustomEmbeddingFunction()
 print("Embedding function defined.")
 
-# Create a collection in ChromaDB
-collection = chroma_client.create_collection(
-    name="mindguardian_collection",
-    embedding_function=embedding_func,
-    metadata={"hnsw:space": "cosine"}
-)
-print("ChromaDB collection created.")
+def create_collection():
+    # Create a collection in ChromaDB
+    collection = chroma_client.create_collection(
+        name="mindguardian_collection",
+        embedding_function=embedding_func,
+        metadata={"hnsw:space": "cosine"}
+    )
+    print("ChromaDB collection created.")
+    return collection
 
-from more_itertools import chunked
+def store_embedded_data_in_chromadb(dataset, collection, batch_size=10):
+    from more_itertools import chunked
+    import uuid
 
-import uuid
-
-def store_embedded_data_in_chromadb(dataset, batch_size=10):
     global_id = 0  # Start a global counter
     for batch in chunked(dataset, batch_size):
         ids = []
@@ -58,4 +60,6 @@ def store_embedded_data_in_chromadb(dataset, batch_size=10):
         )
     print("Data stored in ChromaDB.")
 
-store_embedded_data_in_chromadb(dataset)  
+if __name__ == "__main__":
+    collection = create_collection()
+    store_embedded_data_in_chromadb(dataset, collection)

@@ -6,3 +6,5 @@ langchain_core
 langchain_community
 einops
 more_itertools
+python-dotenv
+langchain-google-genai
