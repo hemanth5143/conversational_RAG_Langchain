@@ -12,6 +12,12 @@ from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from dotenv import load_dotenv
 import os
 from langchain_google_genai import GoogleGenerativeAI
+import logging
+import uuid
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -27,7 +33,7 @@ llm_gemini = GoogleGenerativeAI(model="gemini-pro", google_api_key=token, temper
 
 # Set up system prompt and memory
 system_prompt = "You are an expert mental health counseling chatbot named Mindguardian. You provide professional mental health counseling to users."
-conversational_memory_length = 10
+conversational_memory_length = 25
 memory = ConversationBufferWindowMemory(k=conversational_memory_length, memory_key="chat_history", return_messages=True)
 
 def query_chromdb(user_query):
@@ -37,10 +43,13 @@ def query_chromdb(user_query):
         n_results=1,
         include=["metadatas"]  
     )
+    logger.info(f"ChromaDB query: {user_query}")
+    logger.info(f"ChromaDB response: {response}")
     return response
 
 def query_llm(user_question):
     try:
+        logger.info(f"Processing user question: {user_question}")
         context = query_chromdb(user_question)
 
         prompt = ChatPromptTemplate.from_messages([
@@ -57,9 +66,10 @@ def query_llm(user_question):
             memory=memory,
         )
         response = conversation.predict(human_input=user_question)
+        logger.info(f"Generated response: {response}")
         return response
     except Exception as e:
-        st.error(f"Error: {e}")
+        logger.error(f"Error in query_llm: {e}")
         return "Sorry, something went wrong. Please try again."
 
 # Streamlit UI
@@ -72,6 +82,9 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "I'm MindGuardian, a mental health counseling chatbot. How can I help you?"}
     ]
 
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = str(uuid.uuid4())
+
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -79,6 +92,7 @@ for message in st.session_state.messages:
 
 # React to user input
 if prompt := st.chat_input("What's on your mind?"):
+    logger.info(f"User input: {prompt}")
     # Display user message in chat message container
     st.chat_message("user").markdown(prompt)
     # Add user message to chat history
@@ -92,14 +106,27 @@ if prompt := st.chat_input("What's on your mind?"):
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
 
-# Add a sidebar with additional information or controls if needed
+# Add a sidebar with additional information or controls
 with st.sidebar:
     st.title("About Mindguardian")
     st.write("Mindguardian is an AI-powered mental health counseling chatbot designed to provide support and guidance.")
     st.write("Please note: This is not a substitute for professional medical advice, diagnosis, or treatment.")
+    st.write(f"Current Chat ID: {st.session_state.chat_id}")
 
     if st.button("Clear Chat History"):
+        logger.info("Chat history cleared")
         st.session_state.messages = [
             {"role": "assistant", "content": "I'm MindGuardian, a mental health counseling chatbot. How can I help you?"}
         ]
+        st.session_state.chat_id = str(uuid.uuid4())
         st.experimental_rerun()
+
+    if st.button("Download Chat History"):
+        logger.info("Chat history downloaded")
+        chat_history = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+        st.download_button(
+            label="Download Chat",
+            data=chat_history,
+            file_name=f"chat_history_{st.session_state.chat_id}.txt",
+            mime="text/plain"
+        )
