@@ -25,14 +25,23 @@ class CustomEmbeddingFunction:
 embedding_func = CustomEmbeddingFunction()
 print("Embedding function defined.")
 
-def create_collection():
-    # Create a collection in ChromaDB
-    collection = chroma_client.create_collection(
-        name="mindguardian_collection",
-        embedding_function=embedding_func,
-        metadata={"hnsw:space": "cosine"}
-    )
-    print("ChromaDB collection created.")
+def get_or_create_collection():
+    collection_name = "mindguardian_collection"
+    try:
+        # Try to get the existing collection
+        collection = chroma_client.get_collection(
+            name=collection_name,
+            embedding_function=embedding_func
+        )
+        print(f"Using existing ChromaDB collection: {collection_name}")
+    except ValueError:
+        # If the collection doesn't exist, create a new one
+        collection = chroma_client.create_collection(
+            name=collection_name,
+            embedding_function=embedding_func,
+            metadata={"hnsw:space": "cosine"}
+        )
+        print(f"Created new ChromaDB collection: {collection_name}")
     return collection
 
 def store_embedded_data_in_chromadb(dataset, collection, batch_size=10):
@@ -61,5 +70,10 @@ def store_embedded_data_in_chromadb(dataset, collection, batch_size=10):
     print("Data stored in ChromaDB.")
 
 if __name__ == "__main__":
-    collection = create_collection()
-    store_embedded_data_in_chromadb(dataset, collection)
+    collection = get_or_create_collection()
+    
+    # Check if the collection is empty before adding data
+    if collection.count() == 0:
+        store_embedded_data_in_chromadb(dataset, collection)
+    else:
+        print("Collection already contains data. Skipping data storage.")
