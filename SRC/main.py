@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Initialize ChromaDB client and access the existing collection
-directory = r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\chroma_db"
+directory = "/app/chroma_db"
 chroma_client = chromadb.PersistentClient(path=directory)
 collection = chroma_client.get_collection(name="mindguardian_collection")
 

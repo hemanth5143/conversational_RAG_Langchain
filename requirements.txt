@@ -1,4 +1,6 @@
 #pytorch torchvision torchaudio cpuonly -c pytorch
+#conda install pytorch torchvision torchaudio cpuonly -c pytorch       
+streamlit                                                               
 sentence-transformers
 gradio
 chromadb
