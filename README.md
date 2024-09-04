@@ -24,6 +24,13 @@ To run this project, follow these steps:
    docker-compose up
    ```
 
+5. Access the application:
+   After running the container, you'll see a message indicating the application is running at `http://0.0.0.0:5000/`. However, to access the application on your local machine, use:
+   ```
+   http://127.0.0.1:5000/
+   ```
+
+
 ## Important Notes
 
 - Ensure Docker is installed and running on your system before executing these commands.
@@ -35,7 +42,7 @@ To run this project, follow these steps:
 If you experience any problems with the `docker-compose up` command, you can try running the container directly using:
 
 ```
-docker run -p 8080:8080 --env-file .env hemanth5143/mindbot:latest
+docker run -p 5000:5000 --env-file .env hemanth5143/mindbot:latest
 ```
 
 This command explicitly uses the `.env` file and maps port 8080.
