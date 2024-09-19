@@ -79,7 +79,7 @@ jobs:
    
       - name: Pull latest images
         run: |
-          docker pull ${{secrets.AWS_ECR_LOGIN_URL}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
       
       - name: Run Docker Image
         env:
@@ -90,7 +90,7 @@ jobs:
           -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
           -e AWS_REGION=${{ secrets.AWS_REGION }} \
           -e GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
-          ${{secrets.AWS_ECR_LOGIN_URL}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
    
       - name: Clean previous images and containers
         run: |
