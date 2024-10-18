@@ -7,6 +7,7 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     MessagesPlaceholder,
 )
+from stt import record_audio, transcribe_audio
 from langchain_core.messages import SystemMessage
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Initialize ChromaDB client and access the existing collection
-directory = "/app/chroma_db"
+directory = r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\chroma_db"
 chroma_client = chromadb.PersistentClient(path=directory)
 collection = chroma_client.get_collection(name="mindguardian_collection")
 
@@ -91,7 +92,24 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # React to user input
-if prompt := st.chat_input("What's on your mind?"):
+col1, col2 = st.columns([3, 1])
+with col1:
+    prompt = st.chat_input("What's on your mind?")
+with col2:
+    if st.button("🎤 Voice Input"):
+        filename = "recorded_audio.wav"
+        st.write("Recording... Speak now.")
+        if record_audio(filename):
+            st.write("Transcribing...")
+            prompt = transcribe_audio(filename)
+            if prompt:
+                st.write(f"Transcribed: {prompt}")
+            else:
+                st.error("Transcription failed.")
+        else:
+            st.error("No audio was recorded.")
+
+if prompt:
     logger.info(f"User input: {prompt}")
     # Display user message in chat message container
     st.chat_message("user").markdown(prompt)

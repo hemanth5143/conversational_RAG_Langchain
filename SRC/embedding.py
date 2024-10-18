@@ -4,12 +4,12 @@ import chromadb
 from chromadb.utils import embedding_functions
 
 # Load dataset
-with open("/app/data/Alexander_Street_shareGPT_2.0.json", 'r') as file:
+with open(r"C:\Users\hsai5\OneDrive\Documents\LLM projects\conversational_RAG_chatbot\data\Alexander_Street_shareGPT_2.0.json", 'r') as file:
     dataset = json.load(file)
 print("Dataset loaded successfully.")
 
 # Initialize ChromaDB client
-directory = "/app/chroma_db"
+directory = "C:/Users/hsai5/OneDrive/Documents/LLM projects/conversational_RAG_chatbot/chroma_db"
 chroma_client = chromadb.PersistentClient(path=directory)
 print("ChromaDB client initialized.")
 
