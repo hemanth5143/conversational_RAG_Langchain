@@ -1,16 +1,29 @@
-import pyaudio
-import wave
+import torch
+import torchaudio
 import numpy as np
 import os
+import wave
+import pyaudio
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def record_audio(filename, sample_rate=16000, silence_threshold=300, silence_duration=1.0, min_duration=2.0):
+# Load Silero VAD model
+model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
+                              model='silero_vad',
+                              force_reload=True)
+
+(get_speech_timestamps,
+ save_audio,
+ read_audio,
+ VADIterator,
+ collect_chunks) = utils
+
+def record_audio_with_vad(filename, sample_rate=16000, max_duration=30):
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
-    CHUNK = 1024
+    CHUNK = 512
 
     p = pyaudio.PyAudio()
     stream = p.open(format=FORMAT, channels=CHANNELS, rate=sample_rate, input=True, frames_per_buffer=CHUNK)
@@ -18,28 +31,24 @@ def record_audio(filename, sample_rate=16000, silence_threshold=300, silence_dur
     print("Listening... Speak now.")
 
     frames = []
-    silent_chunks = 0
-    audio_started = False
+    vad_iterator = VADIterator(model)
     recording_duration = 0
+    is_speech = False
 
     while True:
         data = stream.read(CHUNK)
         frames.append(data)
-        audio_data = np.frombuffer(data, dtype=np.int16)
-        volume_norm = np.linalg.norm(audio_data) * 10
-
-        if volume_norm > silence_threshold:
-            silent_chunks = 0
-            audio_started = True
-        elif audio_started:
-            silent_chunks += 1
-
+        audio_chunk = np.frombuffer(data, dtype=np.int16).flatten().astype(np.float32) / 32768.0
+        
+        speech_dict = vad_iterator(audio_chunk, return_seconds=True)
+        
+        if speech_dict:
+            is_speech = True
+            print("Speech detected")
+        
         recording_duration += CHUNK / sample_rate
 
-        if audio_started and silent_chunks > int(silence_duration * sample_rate / CHUNK) and recording_duration > min_duration:
-            break
-
-        if recording_duration > 30:  # Maximum recording duration of 30 seconds
+        if recording_duration > max_duration or (is_speech and not speech_dict and recording_duration > 3):
             break
 
     print("Finished recording.")
@@ -73,12 +82,13 @@ def transcribe_audio(file_path):
     return transcription.text
 
 # Main execution
-filename = "recorded_audio.wav"
-if record_audio(filename):
-    transcription_text = transcribe_audio(filename)
-    if transcription_text:
-        print("Transcription:", transcription_text)
+if __name__ == "__main__":
+    filename = "recorded_audio.wav"
+    if record_audio_with_vad(filename):
+        transcription_text = transcribe_audio(filename)
+        if transcription_text:
+            print("Transcription:", transcription_text)
+        else:
+            print("Transcription failed.")
     else:
-        print("Transcription failed.")
-else:
-    print("No audio was recorded.")
+        print("No audio was recorded.")

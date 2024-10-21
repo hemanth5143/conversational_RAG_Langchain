@@ -7,7 +7,7 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     MessagesPlaceholder,
 )
-from stt import record_audio, transcribe_audio
+from stt import record_audio_with_vad, transcribe_audio
 from langchain_core.messages import SystemMessage
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from dotenv import load_dotenv
@@ -99,7 +99,7 @@ with col2:
     if st.button("🎤 Voice Input"):
         filename = "recorded_audio.wav"
         st.write("Recording... Speak now.")
-        if record_audio(filename):
+        if record_audio_with_vad(filename):
             st.write("Transcribing...")
             prompt = transcribe_audio(filename)
             if prompt:
