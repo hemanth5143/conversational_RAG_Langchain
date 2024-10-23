@@ -7,6 +7,7 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     MessagesPlaceholder,
 )
+from tts import text_to_speech_and_play
 from stt import record_audio_with_vad, transcribe_audio
 from langchain_core.messages import SystemMessage
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
@@ -121,8 +122,16 @@ if prompt:
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(response)
+        
+        # Play the response as speech automatically
+        try:
+            text_to_speech_and_play(response)
+        except Exception as e:
+            st.error(f"Failed to play audio: {str(e)}")
+    
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
+
 
 # Add a sidebar with additional information or controls
 with st.sidebar:
